@@ -19,6 +19,7 @@ class GameController
     #[ORM\ManyToOne(inversedBy: 'gameControllers')]
     private ?User $player2 = null;
 
+
     #[ORM\Column(length: 255)]
     private ?string $board = null;
 

@@ -6,18 +6,84 @@
 <style>
     .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
     .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+    table tr td {
+        border: 1px solid black;
+        width: 3rem;
+        height: 3rem;
+        text-align: center;
+        position: relative;
+    }
+    a {
+        text-decoration: none;
+    }
+    thead tr td {
+        border: none;
+    }
+    table tr td span {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    table tr td .occuped_me {
+        background : #ffd800;
+    }
+    table tr td .occuped_opponent {
+        background : red;
+    }
 </style>
 
 <div class="example-wrapper">
-    <h1>Game</h1>
-    <!-- 
-    php bin/console make:board
-    (row, column, isOccuped)
-    isOccuped : 
-        0 => not
-        1 => player_1
-        2=> player_2
-     for case in board : create html board
-    -->
+    <h1>Game {{ gameId }}</h1>
+    <p>{{ player1.email }} - {{ player2.email }}</p>
+    {% if yourTurn %}
+        <p>Your turn !</p>
+    {% else %}
+        <p>Turn of : {{ playerTurn }}</p>
+    {% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                {% for y in 0..6 %}
+                    <td>
+                        {% if yourTurn %}
+                        <a href="{{ path('app_game', {'id':gameId,'col': y}) }}">👇</a>
+                        {% else %}
+                           🚫
+                        {% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for y in 0..5 %}
+                <tr>
+                    {% for x in 0..6 %}
+                    <td>
+                        {% for move in moves %}
+                            {% if (x == move.columnName and y == move.rowName and move.player == player1.id) %}
+                                <span class="occuped_me"></span>
+                            {% endif %}
+                            {% if (x == move.columnName and y == move.rowName and move.player == player2.id) %}
+                                <span class="occuped_opponent"></span>
+                            {% endif %}
+                        {% endfor %}
+                        <span>{{x}}-{{y}}</span>
+                    </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+        <ul>
+        {% for move in moves %}
+            <li>
+                {{ move.rowName }}/{{move.columnName}}
+            </li>
+        {% endfor %}
+    </ul>
 </div>
 {% endblock %}

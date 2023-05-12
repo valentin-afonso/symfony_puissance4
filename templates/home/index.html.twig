@@ -9,7 +9,22 @@
 </style>
 
 <div class="example-wrapper">
-    <h1>Puissance 4</h1>
-    <a href="{{ path('app_game') }}">New game</a>
+    <h1>Puissance 4 </h1>
+    <p>My games</p>
+    <ul>
+        {% for game in games %}
+
+            <li>
+                <a href="{{ path('app_game', {'id':game.id}) }}">Game {{ game.id }}</a>
+            </li>
+        {% endfor %}
+         {% for game in games2 %}
+
+            <li>
+                <a href="{{ path('app_game', {'id':game.id}) }}">Game {{ game.id }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{{ path('app_new_game') }}">New game</a>
 </div>
 {% endblock %}
