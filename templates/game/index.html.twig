@@ -12,6 +12,8 @@
         height: 3rem;
         text-align: center;
         position: relative;
+        border-radius: 100%;
+        overflow: hidden;
     }
     a {
         text-decoration: none;
@@ -32,26 +34,111 @@
     table tr td .occuped_opponent {
         background : red;
     }
+    .players {
+        display: flex;
+        align-items: center;
+    }
+    .players p {
+        display: flex;
+        align-items: center;
+    }
+    .players .player_color {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 100%;
+        margin: 0 1rem;
+        display: block
+    }
+    .players .player1.me,
+    .players .player2.me {
+        font-weight: bold;
+    }
+    .players .player1 .player_color {
+        background-color: #ffd800;
+    }
+    .players .player2 .player_color {
+        background-color: red;
+    }
+    .your_turn,
+    .turn_of {
+        display: inline-block;
+        padding: 0.5rem 2rem;
+        border-radius: 8px;
+        font-weight: 700;
+    }
+    .your_turn {
+        background-color: #5fea5f;
+    }
+    .turn_of {
+        background-color: #ff3636;
+        color: white;
+    }
+    .content_winner .info_winner {
+        margin: 0;
+        font-size: .8rem;
+    }
+    .iswin {
+        display: inline-block;
+        padding: 0.5rem 2rem;
+        border-radius: 8px;
+        font-weight: 700;
+        margin-bottom: 7px;
+    }
+    .iswin.win {
+        background-color: #5fea5f;
+    }
+    .iswin.lose {
+        background-color: #ff3636;
+        color: white;
+    }
 </style>
 
 <div class="example-wrapper">
     <h1>Game {{ gameId }}</h1>
-    <p>{{ player1.email }} - {{ player2.email }}</p>
-    {% if yourTurn %}
-        <p>Your turn !</p>
-    {% else %}
-        <p>Turn of : {{ playerTurn }}</p>
+    <div class="players">
+        {% set player1_class = current_user_email == player1.email ? 'player1 me' : 'player1' %}
+        <p class="{{ player1_class }}">
+            <span class="player_color"></span>{{ player1.email }}
+        </p>
+        {% set player2_class = current_user_email == player2.email ? 'player2 me' : 'player2' %}
+        <p class="{{ player2_class }}">
+            <span class="player_color"></span>{{ player2.email }}
+        </p>
+    </div>
+
+    {% if winner == null %}
+        {% if yourTurn %}
+            <p class="your_turn">Your turn !</p>
+        {% else %}
+            <p class="turn_of">Turn of : {{ playerTurn }}</p>
+        {% endif %}
     {% endif %}
 
+    {% if winner != null %}
+        <div class="content_winner">
+            {% if winner == player1.id %}
+                {% if current_user_email == player1.email %}
+                    <p class="iswin win">🏆 You win !</p>
+                {% else %}
+                    <p class="iswin lose">🥲 You lose</p>
+                {% endif %}
+                <p class="info_winner">Winner : {{player1.email}} </p> 
+            {% else %}
+                <p class="info_winner">Winner : {{player2.email}} </p> 
+            {% endif %}
+        </div>
+    {% endif %}
     <table>
         <thead>
             <tr>
                 {% for y in 0..6 %}
                     <td>
-                        {% if yourTurn %}
-                        <a href="{{ path('app_game', {'id':gameId,'col': y}) }}">👇</a>
-                        {% else %}
-                           🚫
+                        {% if winner == null %}
+                            {% if yourTurn %}
+                            <a href="{{ path('app_game', {'id':gameId,'col': y}) }}">👇</a>
+                            {% else %}
+                            🚫
+                            {% endif %}
                         {% endif %}
                     </td>
                 {% endfor %}
@@ -70,7 +157,6 @@
                                 <span class="occuped_opponent"></span>
                             {% endif %}
                         {% endfor %}
-                        <span>{{x}}-{{y}}</span>
                     </td>
                     {% endfor %}
                 </tr>
@@ -78,12 +164,5 @@
         </tbody>
     </table>
 
-        <ul>
-        {% for move in moves %}
-            <li>
-                {{ move.rowName }}/{{move.columnName}}
-            </li>
-        {% endfor %}
-    </ul>
 </div>
 {% endblock %}

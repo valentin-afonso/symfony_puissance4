@@ -34,10 +34,9 @@ class GameController extends AbstractController
         if ($player_turn == $current_user_email) {
             $your_turn = true;
         }
-        var_dump($player_turn);
 
-        // $row = $request->query->get('row');
         $col = $request->query->get('col');
+        
         if ($col != null) {
             $cols = $moveRepository->findBy(['columnName' => $col, 'game' => $game]);
             switch (count($cols)) {
@@ -60,9 +59,6 @@ class GameController extends AbstractController
                     $row = 0;
                     break;
             }
-            // var_dump($col);
-            // var_dump($row);
-
             
             $move = new Move();
             $move->setColumnName($col);
@@ -77,10 +73,15 @@ class GameController extends AbstractController
             $entityManager->persist($move);
             $entityManager->persist($game);
             $entityManager->flush();
+
+            // check win
+            $this->isWin($moveRepository, $game);
+
             return $this->redirectToRoute('app_game', ["id" => $game->getId()]);
         }
     
         $moves = $moveRepository->findBy(['game' => $game]);
+        $winner = $this->isWin($moveRepository, $game);
 
         return $this->render('game/index.html.twig', [
             'controller_name' => 'GameController',
@@ -90,6 +91,72 @@ class GameController extends AbstractController
             'playerTurn' => $player_turn,
             'yourTurn' => $your_turn,
             'moves' => $moves,
+            'current_user_email' => $current_user_email,
+            'winner' => $winner,
         ]);
     }
+
+    function isWin($moveRepository, $game) {
+        $cols = $moveRepository->findBy(['game' => $game]);
+        $grid = array_fill(0, 7, array_fill(0, 6, null));
+
+        foreach ($cols as $col){
+            $row = $col->getRowName();
+            $column = $col->getColumnName();
+            $player = $col->getPlayer();
+            $grid[$column][$row] = $player;   
+        }
+        
+        // Parcourir chaque case de la grille pour vérifier s'il y a un vainqueur
+        for ($column = 0; $column < 7; $column++) {
+            for ($row = 0; $row < 6; $row++) {
+                $player = $grid[$column][$row];
+
+                if ($player !== null) {
+                    // Vérifier les combinaisons possibles de puissance 4 dans les directions : droite, bas, diagonale droite, diagonale gauche
+                    if ($this->checkFourInARow($grid, $column, $row, 1, 0)) {
+                        return $player;
+                    }
+                    if ($this->checkFourInARow($grid, $column, $row, 0, 1)) {
+                        return $player;
+                    }
+                    if ($this->checkFourInARow($grid, $column, $row, 1, 1)) {
+                        return $player;
+                    }
+                    if ($this->checkFourInARow($grid, $column, $row, 1, -1)) {
+                        return $player;
+                    }
+                }
+            }
+        }
+        return null; // Aucun vainqueur trouvé
+    }
+
+    // Vérifie s'il y a une combinaison de puissance 4 à partir d'une position donnée dans une direction donnée
+    function checkFourInARow($grid, $column, $row, $deltaX, $deltaY) {
+        $player = $grid[$column][$row];
+        $count = 0;
+
+        for ($i = 0; $i < 4; $i++) {
+            $newColumn = $column + $i * $deltaX;
+            $newRow = $row + $i * $deltaY;
+
+            // Vérifier si la position est en dehors de la grille
+            if ($newColumn < 0 || $newColumn >= 7 || $newRow < 0 || $newRow >= 6) {
+                return false;
+            }
+
+            // Vérifier si la case contient le même joueur
+            if ($grid[$newColumn][$newRow] === $player) {
+                $count++;
+            } else {
+                return false;
+            }
+        }
+
+        // S'il y a 4 cases consécutives du même joueur dans la direction donnée, il y a un vainqueur
+        return $count === 4;
+    }
+
 }
+
