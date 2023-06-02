@@ -44,6 +44,12 @@
                     {% endif %}
                 </ul>
             </nav>
+            <div class="langage">
+                <form action="{{ path('app_change_language') }}" method="post">
+                    <button type="submit" name="locale" value="fr_FR">Français</button>
+                    <button type="submit" name="locale" value="en_US">English</button>
+                </form>
+            </div>
         </header>
         {% block body %}{% endblock %}
     </body>

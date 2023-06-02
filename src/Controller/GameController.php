@@ -10,11 +10,12 @@ use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Move;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\MoveRepository;
+use Psr\Log\LoggerInterface;
 
 class GameController extends AbstractController
 {
     #[Route('/game/{id}', name: 'app_game')]
-    public function index(int $id, GameControllerRepository $gameRepository, MoveRepository $moveRepository,EntityManagerInterface $entityManager, Request $request): Response
+    public function index(int $id, GameControllerRepository $gameRepository, MoveRepository $moveRepository,EntityManagerInterface $entityManager, Request $request, LoggerInterface $logger): Response
     {
 
         $current_user = $this->getUser();
@@ -59,7 +60,7 @@ class GameController extends AbstractController
                     $row = 0;
                     break;
             }
-            
+            $logger->info("Le joueur ". $current_user->getId() ." a joué en x: $col y: $row");
             $move = new Move();
             $move->setColumnName($col);
             $move->setRowName($row);
@@ -75,13 +76,16 @@ class GameController extends AbstractController
             $entityManager->flush();
 
             // check win
-            $this->isWin($moveRepository, $game);
+            // $this->isWin($moveRepository, $game);
 
             return $this->redirectToRoute('app_game', ["id" => $game->getId()]);
         }
     
         $moves = $moveRepository->findBy(['game' => $game]);
         $winner = $this->isWin($moveRepository, $game);
+        if ($winner != null) {
+            $logger->info("Le joueur ". $winner ." a gagné");
+        }
 
         return $this->render('game/index.html.twig', [
             'controller_name' => 'GameController',
@@ -93,6 +97,7 @@ class GameController extends AbstractController
             'moves' => $moves,
             'current_user_email' => $current_user_email,
             'winner' => $winner,
+            'locale' => $this->getUser()->getLocale(),
         ]);
     }
 
@@ -106,8 +111,7 @@ class GameController extends AbstractController
             $player = $col->getPlayer();
             $grid[$column][$row] = $player;   
         }
-        
-        // Parcourir chaque case de la grille pour vérifier s'il y a un vainqueur
+    
         for ($column = 0; $column < 7; $column++) {
             for ($row = 0; $row < 6; $row++) {
                 $player = $grid[$column][$row];
@@ -154,7 +158,6 @@ class GameController extends AbstractController
             }
         }
 
-        // S'il y a 4 cases consécutives du même joueur dans la direction donnée, il y a un vainqueur
         return $count === 4;
     }
 

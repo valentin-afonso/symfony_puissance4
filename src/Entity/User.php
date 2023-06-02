@@ -35,6 +35,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'player1', targetEntity: GameController::class)]
     private Collection $gameControllers;
 
+    #[ORM\Column(length: 255, options: ["default" => "fr_FR"])]
+    private ?string $locale = 'fr_FR';
+
     public function __construct()
     {
         $this->gameControllers = new ArrayCollection();
@@ -136,6 +139,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $gameController->setPlayer1(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getLocale(): ?string
+    {
+        return $this->locale;
+    }
+
+    public function setLocale(string $locale): self
+    {
+        $this->locale = $locale;
 
         return $this;
     }

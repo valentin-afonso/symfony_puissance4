@@ -108,9 +108,13 @@
 
     {% if winner == null %}
         {% if yourTurn %}
-            <p class="your_turn">Your turn !</p>
+            <p class="your_turn">
+                {{ "Your turn !"|trans({}, 'messages', locale) }}
+            </p>
         {% else %}
-            <p class="turn_of">Turn of : {{ playerTurn }}</p>
+            <p class="turn_of">
+                {{ "Turn of"|trans({}, 'messages', locale) }} : {{ playerTurn }}
+            </p>
         {% endif %}
     {% endif %}
 
@@ -118,9 +122,9 @@
         <div class="content_winner">
             {% if winner == player1.id %}
                 {% if current_user_email == player1.email %}
-                    <p class="iswin win">🏆 You win !</p>
+                    <p class="iswin win">🏆 {{ "You win"|trans({}, 'messages', locale) }} !</p>
                 {% else %}
-                    <p class="iswin lose">🥲 You lose</p>
+                    <p class="iswin lose">🥲 {{ "You lose"|trans({}, 'messages', locale) }}</p>
                 {% endif %}
                 <p class="info_winner">Winner : {{player1.email}} </p> 
             {% else %}
